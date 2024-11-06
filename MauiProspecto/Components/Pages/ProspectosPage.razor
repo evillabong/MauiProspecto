@@ -1,0 +1,69 @@
+﻿@page "/prospectos"
+@using MauiProspecto.Services
+@inject NavigationManager NavigationManager
+@inject ApiService client;
+@inject IJSRuntime js
+<h3>Lista de Prospectos</h3>
+@if (load)
+{
+    <MauiProspecto.Components.Views.LoaderView></MauiProspecto.Components.Views.LoaderView>
+}
+else
+{
+    <MauiProspecto.Components.Views.CardView>
+        @foreach (var prospecto in prospectos)
+        {
+
+            <MauiProspecto.Components.Views.CardItemView Title="@prospecto.Nombre" Event="@(()=> IrActividades(prospecto.Id))">
+                <small><b>Cel:</b> @prospecto.Celular</small>  <small><b>E-mail:</b> @prospecto.CorreoElectronico</small>
+            </MauiProspecto.Components.Views.CardItemView>
+        }
+    </MauiProspecto.Components.Views.CardView>
+}
+
+
+
+@code {
+    private List<ProspectoBase> prospectos = [];
+    int page = 1;
+    int groups = 1;
+    int size = 12;
+    bool load = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Load();
+        }
+    }
+    async Task Load()
+    {
+        load = true;
+        StateHasChanged();
+        try
+        {
+
+            var response = await client.GetAsync<Common.Result.GetProspectosResult>($"Prospecto/GetProspectos?page={page}&size={size}");
+            if (response!.Result == ResultType.Success)
+            {
+                prospectos = response.Prospectos;
+
+            }
+            else
+            {
+                await js.InvokeVoidAsync("alert", response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            await js.InvokeVoidAsync("alert", ex.Message);
+        }
+        load = false;
+        StateHasChanged();
+    }
+
+    void IrActividades(long prospectoId)
+    {
+        NavigationManager.NavigateTo($"/actividades/{prospectoId}");
+    }
+}

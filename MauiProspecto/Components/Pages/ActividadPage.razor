@@ -1,0 +1,61 @@
+﻿@page "/actividad"
+
+
+
+<h3>Formulario de Actividad</h3>
+
+<EditForm Model="@actividad" OnValidSubmit="SubmitForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="id" class="form-label">ID</label>
+        <InputNumber @bind-Value="actividad.Id" id="id" class="form-control" />
+        <ValidationMessage For="@(() => actividad.Id)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <InputText @bind-Value="actividad.Descripcion" id="descripcion" class="form-control" />
+        <ValidationMessage For="@(() => actividad.Descripcion)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="tipo" class="form-label">Tipo de Actividad</label>
+        <InputSelect @bind-Value="actividad.Tipo" id="tipo" class="form-control">
+            @foreach (var tipo in Enum.GetValues<ActividadType>())
+            {
+                <option value="@tipo">@tipo</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => actividad.Tipo)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="fecha" class="form-label">Fecha</label>
+        <InputDate @bind-Value="actividad.Fecha" id="fecha" class="form-control" />
+        <ValidationMessage For="@(() => actividad.Fecha)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="prospectoId" class="form-label">Prospecto ID</label>
+        <InputNumber @bind-Value="actividad.ProspectoId" id="prospectoId" class="form-control" />
+        <ValidationMessage For="@(() => actividad.ProspectoId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</EditForm>
+
+@code {
+    [Parameter] public long Id { get; set; }
+    private ActividadBase actividad = new ActividadBase();
+
+    private async Task SubmitForm()
+    {
+        if (actividad != null)
+        {
+            // Lógica para guardar o procesar la actividad
+            Console.WriteLine("Formulario enviado con éxito.");
+        }
+    }
+}

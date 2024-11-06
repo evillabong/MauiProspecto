@@ -1,0 +1,19 @@
+﻿<a href="#" class="list-group-item list-group-item-action" @onclick="@Event">
+    <div class="ms-2 me-auto">
+        <div class="fw-bold">@Title</div>
+        @ChildContent
+    </div>
+    @if (BagdeCount is not null)
+    {
+        <span class="badge text-bg-primary rounded-pill">@BagdeCount.Value</span>
+    }
+</a>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int? BagdeCount { get; set; } = null;
+    [Parameter] public EventCallback Event { get; set; }
+
+
+}

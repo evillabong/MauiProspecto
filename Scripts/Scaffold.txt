@@ -1,0 +1,1 @@
+Scaffold-DbContext "Server=localhost;User Id=sa;Password=100;Database=MauiProspecto;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities/Sql/DataBase -Force -Context DatabaseContext -Schemas dbo -StartupProject ModelTest

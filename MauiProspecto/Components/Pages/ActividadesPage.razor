@@ -1,0 +1,32 @@
+﻿@page "/actividades/{ProspectoId:long}"
+
+<h3>Actividades para el Prospecto ID: @ProspectoId</h3>
+
+@if (actividades.Any())
+{
+    <ul>
+        @foreach (var actividad in actividades)
+        {
+            <li>@actividad.Descripcion - @actividad.Fecha</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No hay actividades para este prospecto.</p>
+}
+
+@code {
+    [Parameter]
+    public long ProspectoId { get; set; }
+
+    private List<ActividadBase> actividades = new List<ActividadBase>();
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+
+}
+
