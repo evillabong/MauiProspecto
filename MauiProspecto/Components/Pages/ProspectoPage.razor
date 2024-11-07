@@ -1,50 +1,122 @@
-﻿<h3>ProspectoPage</h3>
+﻿@page "/prospecto/{ProspectoId:long}"
+@inject NavigationManager navigation
+@inject ApiService service
+@inject IJSRuntime js
 
-@using System.ComponentModel.DataAnnotations
-
-<h3>Formulario de Prospecto</h3>
-
+<h3>@(ProspectoId == 0 ? "Crear Prospecto" : "Actualizar Prospecto")</h3>
+<br />
+@if (load)
+{
+    <MauiProspecto.Components.Views.LoaderView></MauiProspecto.Components.Views.LoaderView>
+}
 <EditForm Model="@prospecto" OnValidSubmit="SubmitForm">
     <DataAnnotationsValidator />
+
     <ValidationSummary />
+    <div class="row">
+        @if (ProspectoId != 0)
+        {
+            <div class="col-12">
+                <small class="text-muted">ID</small>
+                <InputNumber @bind-Value="prospecto.Id" class="form-control" disabled />
+            </div>
+        }
 
-    <div class="mb-3">
-        <label for="id" class="form-label">ID</label>
-        <InputNumber @bind-Value="prospecto.Id" id="id" class="form-control" />
-        <ValidationMessage For="@(() => prospecto.Id)" />
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Nombre</small>
+            <InputText @bind-Value="prospecto.Nombre" id="nombre" class="form-control" disabled="@load" />
+            <ValidationMessage For="@(() => prospecto.Nombre)" />
+        </div>
+
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Celular</small>
+            <InputText @bind-Value="prospecto.Celular" id="celular" class="form-control" disabled="@load" />
+            <ValidationMessage For="@(() => prospecto.Celular)" />
+        </div>
+
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Correo Electrónico</small>
+            <InputText @bind-Value="prospecto.CorreoElectronico" id="correoElectronico" class="form-control" disabled="@load" />
+            <ValidationMessage For="@(() => prospecto.CorreoElectronico)" />
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label for="nombre" class="form-label">Nombre</label>
-        <InputText @bind-Value="prospecto.Nombre" id="nombre" class="form-control" />
-        <ValidationMessage For="@(() => prospecto.Nombre)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="celular" class="form-label">Celular</label>
-        <InputText @bind-Value="prospecto.Celular" id="celular" class="form-control" />
-        <ValidationMessage For="@(() => prospecto.Celular)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="correoElectronico" class="form-label">Correo Electrónico</label>
-        <InputText @bind-Value="prospecto.CorreoElectronico" id="correoElectronico" class="form-control" />
-        <ValidationMessage For="@(() => prospecto.CorreoElectronico)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Enviar</button>
+    <br />
+    <hr />
+    <button type="submit" class="btn btn-primary"> Grabar</button>
+    <button class="btn btn-secondary" @onclick="@(()=> navigation.NavigateTo("/prospectos"))"> Cancelar</button>
 </EditForm>
 
-@code {
-    private ProspectoBase prospecto = new ProspectoBase();
-
-    private async Task SubmitForm()
-    {
-        // HttpClient client = new HttpClient();
-        // var response = client.PostAsync
-    }
-}
 
 @code {
     [Parameter] public long ProspectoId { get; set; }
+    private ProspectoBase prospecto = new ProspectoBase();
+
+    long prospectoId = -1;
+    bool load;
+    private async Task SubmitForm()
+    {
+        load = true;
+        StateHasChanged();
+        try
+        {
+            var response = await service.PostAsync<CreateProspectoParam, CreateProspectoResult>("prospecto/CreateProspecto", new CreateProspectoParam
+                {
+                    Prospecto = prospecto
+                });
+
+            if (response!.Result == ResultType.Success)
+            {
+                await js.AlertAsync(ProspectoId == 0 ? "Creado correctamente" : "Actualizado correctamente");
+                prospecto = new ProspectoBase();
+                prospectoId = ProspectoId;
+            }
+            else
+            {
+                await js.AlertAsync(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+        load = false;
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (prospectoId != ProspectoId && ProspectoId > 0)
+        {
+            await Buscar();
+        }
+        else
+        {
+            prospecto = new ProspectoBase();
+        }
+    }
+    async Task Buscar()
+    {
+        load = true;
+        StateHasChanged();
+        try
+        {
+            var response = await service.GetAsync<GetProspectoResult>($"prospecto/GetProspecto?prospectoId={ProspectoId}");
+
+            if (response!.Result == ResultType.Success)
+            {
+                prospecto = response.Prospecto;
+            }
+            else
+            {
+                await js.AlertAsync(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+        load = false;
+        StateHasChanged();
+    }
 }

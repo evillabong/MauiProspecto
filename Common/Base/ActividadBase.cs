@@ -18,5 +18,7 @@ namespace Common.Base
         public DateTimeOffset Fecha { get; set; }
 
         public long ProspectoId { get; set; }
+
+        public int Calificacion { get; set; }
     }
 }

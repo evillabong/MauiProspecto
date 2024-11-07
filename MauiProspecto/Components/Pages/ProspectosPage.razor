@@ -1,21 +1,31 @@
 ﻿@page "/prospectos"
 @using MauiProspecto.Services
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 @inject ApiService client;
 @inject IJSRuntime js
-<h3>Lista de Prospectos</h3>
+
+<h3>Prospectos</h3>
+<br />
 @if (load)
 {
     <MauiProspecto.Components.Views.LoaderView></MauiProspecto.Components.Views.LoaderView>
 }
 else
 {
+    <button class="btn btn-primary btn-sm" @onclick="() => IrAProspecto(0)"> <i class="bi bi-person-fill-add"></i> Nuevo Prospecto </button>
+    <br />
+    <br />
     <MauiProspecto.Components.Views.CardView>
         @foreach (var prospecto in prospectos)
         {
-
             <MauiProspecto.Components.Views.CardItemView Title="@prospecto.Nombre" Event="@(()=> IrActividades(prospecto.Id))">
-                <small><b>Cel:</b> @prospecto.Celular</small>  <small><b>E-mail:</b> @prospecto.CorreoElectronico</small>
+                <div class="float-start" style="width:max-content">
+                    <small><b>Cel:</b> @prospecto.Celular <b>E-mail:</b> @prospecto.CorreoElectronico</small>
+                </div>
+                <div class="float-end" style="width:max-content">
+                    <a title="Borrar" class="text-danger" href="javascript:void(0)" @onclick="async () => await BorrarProspecto(prospecto.Id)"><i class="bi bi-trash-fill"></i> </a>
+                    <a title="Editar" class="text-warning" href="javascript:void(0)" @onclick="@(()=> IrAProspecto(prospecto.Id))"><i class="bi bi-pencil-square"></i> </a>
+                </div>
             </MauiProspecto.Components.Views.CardItemView>
         }
     </MauiProspecto.Components.Views.CardView>
@@ -51,19 +61,55 @@ else
             }
             else
             {
-                await js.InvokeVoidAsync("alert", response.Message);
+                await js.AlertAsync(response.Message);
             }
         }
         catch (Exception ex)
         {
-            await js.InvokeVoidAsync("alert", ex.Message);
+            await js.AlertAsync(ex.Message);
         }
         load = false;
         StateHasChanged();
     }
+    async Task BorrarProspecto(long prospectoId)
+    {
+        load = true;
+        StateHasChanged();
 
+        try
+        {
+            var confirm = await js.ConfirmAsync($"¿Desea eliminar el prospecto?");
+            if (confirm)
+            {
+                var response = await client.GetAsync<Common.Result.DeleteProspectoResult>($"Prospecto/DeleteProspecto?prospectoId={prospectoId}");
+
+                if (response!.Result == ResultType.Success)
+                {
+                    await js.AlertAsync("Prospecto eliminado correctamente");
+                    await Load();
+                }
+                else
+                {
+                    await js.AlertAsync(response.Message);
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+
+        load = false;
+        StateHasChanged();
+    }
     void IrActividades(long prospectoId)
     {
-        NavigationManager.NavigateTo($"/actividades/{prospectoId}");
+        navigationManager.NavigateTo($"/actividades/{prospectoId}");
+    }
+    void IrAProspecto(long prospectoId)
+    {
+        navigationManager.NavigateTo($"/prospecto/{prospectoId}");
     }
 }

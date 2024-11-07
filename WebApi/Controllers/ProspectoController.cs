@@ -29,49 +29,45 @@ namespace WebApi.Controllers
             return await _modelservice.Execute(async (dbcontext) =>
             {
                 var ret = new CreateProspectoResult();
-
-                var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Nombre == param.Prospecto.Nombre);
-                if (prospecto is null)
+                if (param.Prospecto.Id == 0)
                 {
-                    await dbcontext.Prospectos.AddAsync(new Model.Entities.Sql.DataBase.Prospecto
+                    var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Nombre == param.Prospecto.Nombre);
+                    if (prospecto is null)
                     {
-                        Nombre = param.Prospecto.Nombre,
-                        Celular = param.Prospecto.Celular,
-                        CorreoElectronico = param.Prospecto.CorreoElectronico
-                    });
-                    await dbcontext.SaveChangesAsync();
+                        await dbcontext.Prospectos.AddAsync(new Model.Entities.Sql.DataBase.Prospecto
+                        {
+                            Nombre = param.Prospecto.Nombre,
+                            Celular = param.Prospecto.Celular,
+                            CorreoElectronico = param.Prospecto.CorreoElectronico
+                        });
+                        await dbcontext.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        ret.Result = Common.Type.ResultType.Warning;
+                        ret.Message = "Existe un prospecto con el mismo nombre";
+                    }
+                    return ret;
+
                 }
                 else
                 {
-                    ret.Result = Common.Type.ResultType.Warning;
-                    ret.Message = "Existe un prospecto con el mismo nombre";
-                }
-                return ret;
-            });
-        }
+                    var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Id == param.Prospecto.Id);
+                    if (prospecto is not null)
+                    {
+                        prospecto.Nombre = param.Prospecto.Nombre;
+                        prospecto.Celular = param.Prospecto.Celular;
+                        prospecto.CorreoElectronico = param.Prospecto.CorreoElectronico;
 
-        [HttpPost("EditProspecto")]
-        public async Task<EditProspectoResult> EditProspecto([FromBody] EditProspectoParam param)
-        {
-            return await _modelservice.Execute(async (dbcontext) =>
-            {
-                var ret = new EditProspectoResult();
-
-                var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Id == param.Prospecto.Id);
-                if (prospecto is not null)
-                {
-                    prospecto.Nombre = param.Prospecto.Nombre;
-                    prospecto.Celular = param.Prospecto.Celular;
-                    prospecto.CorreoElectronico = param.Prospecto.CorreoElectronico;
-
-                    await dbcontext.SaveChangesAsync();
+                        await dbcontext.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        ret.Result = Common.Type.ResultType.Warning;
+                        ret.Message = "Existe un prospecto con el mismo nombre";
+                    }
+                    return ret;
                 }
-                else
-                {
-                    ret.Result = Common.Type.ResultType.Warning;
-                    ret.Message = "Existe un prospecto con el mismo nombre";
-                }
-                return ret;
             });
         }
 
@@ -128,13 +124,13 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("DeleteProspecto")]
-        public async Task<DeleteProspectoResult> DeleteProspecto([FromQuery] long id)
+        public async Task<DeleteProspectoResult> DeleteProspecto([FromQuery] long prospectoId)
         {
             return await _modelservice.Execute(async (dbcontext, configuration) =>
             {
                 var ret = new DeleteProspectoResult();
 
-                var actividades = dbcontext.Actividads.Where(p => p.ProspectoId == id);
+                var actividades = dbcontext.Actividads.Where(p => p.ProspectoId == prospectoId);
 
                 if (actividades.Any())
                 {
@@ -143,7 +139,7 @@ namespace WebApi.Controllers
                 }
 
 
-                var prospectos = dbcontext.Prospectos.Where(p => p.Id == id);
+                var prospectos = dbcontext.Prospectos.Where(p => p.Id == prospectoId);
 
                 if (prospectos.Any())
                 {

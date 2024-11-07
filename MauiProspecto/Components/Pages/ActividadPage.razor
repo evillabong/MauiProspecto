@@ -1,61 +1,135 @@
-﻿@page "/actividad"
+﻿@page "/actividad/{ActividadId:long}"
+@page "/actividad/{ActividadId:long}/{ProspectoId:long}"
+@inject ApiService service
+@inject IJSRuntime js
+@inject NavigationManager navigation
 
-
-
-<h3>Formulario de Actividad</h3>
+<h3>@(ActividadId == 0 ? "Crear Actividad" : "Actualizar Actividad")</h3>
+<br />
+@if (load)
+{
+    <MauiProspecto.Components.Views.LoaderView></MauiProspecto.Components.Views.LoaderView>
+}
 
 <EditForm Model="@actividad" OnValidSubmit="SubmitForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    <div class="row">
+        @if (ActividadId != 0)
+        {
+            <div class="col-12 col-md-4">
+                <small class="text-muted">ID</small>
+                <InputNumber @bind-Value="actividad.Id" class="form-control" disabled />
+            </div>
+        }
 
-    <div class="mb-3">
-        <label for="id" class="form-label">ID</label>
-        <InputNumber @bind-Value="actividad.Id" id="id" class="form-control" />
-        <ValidationMessage For="@(() => actividad.Id)" />
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Tipo de actividad</small>
+            <InputSelect @bind-Value="actividad.Tipo" class="form-select">
+                @foreach (var tipo in Enum.GetValues<ActividadType>())
+                {
+                    <option value="@tipo">@tipo</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => actividad.Tipo)" />
+        </div>
+
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Fecha</small>
+            <InputDate @bind-Value="actividad.Fecha" class="form-control" />
+            <ValidationMessage For="@(() => actividad.Fecha)" />
+        </div>
+
+        <div class="col-12 col-md-4">
+            <small class="text-muted">Calificación</small>
+            <InputNumber @bind-Value="actividad.Calificacion" class="form-control" min="0" max="5" />
+            <ValidationMessage For="@(() => actividad.Calificacion)" />
+        </div>
+
+        <div class="col-12">
+            <small class="text-muted">Descripción</small>
+            <InputTextArea @bind-Value="actividad.Descripcion" class="form-control" row="2" />
+            <ValidationMessage For="@(() => actividad.Descripcion)" />
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label for="descripcion" class="form-label">Descripción</label>
-        <InputText @bind-Value="actividad.Descripcion" id="descripcion" class="form-control" />
-        <ValidationMessage For="@(() => actividad.Descripcion)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="tipo" class="form-label">Tipo de Actividad</label>
-        <InputSelect @bind-Value="actividad.Tipo" id="tipo" class="form-control">
-            @foreach (var tipo in Enum.GetValues<ActividadType>())
-            {
-                <option value="@tipo">@tipo</option>
-            }
-        </InputSelect>
-        <ValidationMessage For="@(() => actividad.Tipo)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="fecha" class="form-label">Fecha</label>
-        <InputDate @bind-Value="actividad.Fecha" id="fecha" class="form-control" />
-        <ValidationMessage For="@(() => actividad.Fecha)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="prospectoId" class="form-label">Prospecto ID</label>
-        <InputNumber @bind-Value="actividad.ProspectoId" id="prospectoId" class="form-control" />
-        <ValidationMessage For="@(() => actividad.ProspectoId)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Enviar</button>
+    <hr />
+    <button type="submit" class="btn btn-primary"> Grabar</button>
+    <button class="btn btn-secondary" @onclick="@(()=> navigation.NavigateTo("/actividades"))"> Cancelar</button>
 </EditForm>
 
 @code {
-    [Parameter] public long Id { get; set; }
+    [Parameter] public long ActividadId { get; set; }
+    [Parameter] public long ProspectoId { get; set; }
     private ActividadBase actividad = new ActividadBase();
 
+    long actividadId = -1;
+    bool load;
     private async Task SubmitForm()
     {
-        if (actividad != null)
+        load = true;
+        StateHasChanged();
+        try
         {
-            // Lógica para guardar o procesar la actividad
-            Console.WriteLine("Formulario enviado con éxito.");
+            var response = await service.PostAsync<CreateActividadParam, CreateActividadResult>("Actividades/CreateActividad", new CreateActividadParam
+                {
+                    Actividad = actividad,
+                    ProspectoId = ProspectoId
+                });
+
+            if (response!.Result == ResultType.Success)
+            {
+                await js.AlertAsync(ActividadId == 0 ? "Creado correctamente" : "Actualizado correctamente");
+                actividad = new ActividadBase();
+                actividadId = ActividadId;
+            }
+            else
+            {
+                await js.AlertAsync(response.Message);
+            }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+        load = false;
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (actividadId != ActividadId && ActividadId > 0)
+        {
+            await Buscar();
+        }
+        else
+        {
+            actividad = new ActividadBase();
+        }
+    }
+    async Task Buscar()
+    {
+        load = true;
+        StateHasChanged();
+        try
+        {
+            var response = await service.GetAsync<GetActividadResult>($"Actividades/GetActividad?actividadId={ActividadId}");
+
+            if (response!.Result == ResultType.Success)
+            {
+                actividad = response.Actividad;
+            }
+            else
+            {
+                await js.AlertAsync(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+        load = false;
+        StateHasChanged();
     }
 }

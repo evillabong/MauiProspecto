@@ -1,32 +1,113 @@
 ﻿@page "/actividades/{ProspectoId:long}"
+@using MauiProspecto.Services
+@inject NavigationManager navigationManager
+@inject ApiService client;
+@inject IJSRuntime js
 
-<h3>Actividades para el Prospecto ID: @ProspectoId</h3>
-
-@if (actividades.Any())
+<h3>Actividades</h3>
+<br />
+@if (load)
 {
-    <ul>
-        @foreach (var actividad in actividades)
-        {
-            <li>@actividad.Descripcion - @actividad.Fecha</li>
-        }
-    </ul>
+    <MauiProspecto.Components.Views.LoaderView></MauiProspecto.Components.Views.LoaderView>
 }
 else
 {
-    <p>No hay actividades para este prospecto.</p>
+    <button class="btn btn-primary btn-sm" @onclick="() => IrActividad(0)"> <i class="bi bi-file-earmark-plus"></i> Nueva Actividad </button>
+    <br />
+    <br />
+    <MauiProspecto.Components.Views.CardView>
+        @foreach (var actividad in actividades)
+        {
+            <MauiProspecto.Components.Views.CardItemView Title="@actividad.Descripcion" Event="@(()=> IrActividad(actividad.Id))">
+                <div class="float-start" style="width:max-content">
+                    <p><small><b>Fecha:</b> @actividad.Fecha.ToString("dd-MMM-yyyy") <b>Tipo:</b> @actividad.Tipo.ToString()</small></p>
+                    <p><small><b>Calificación:</b> @actividad.Calificacion</small></p>
+                </div>
+                <div class="float-end" style="width:max-content">
+                    <a title="Borrar" class="text-danger" href="javascript:void(0)" @onclick="async () => await BorrarActividad(actividad.Id)"><i class="bi bi-trash-fill"></i> </a>
+                    <a title="Editar" class="text-warning" href="javascript:void(0)" @onclick="@(()=> IrActividad(actividad.Id))"><i class="bi bi-pencil-square"></i> </a>
+                </div>
+            </MauiProspecto.Components.Views.CardItemView>
+        }
+    </MauiProspecto.Components.Views.CardView>
 }
+
+
 
 @code {
-    [Parameter]
-    public long ProspectoId { get; set; }
-
-    private List<ActividadBase> actividades = new List<ActividadBase>();
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    private List<ActividadBase> actividades = [];
+    [Parameter] public long ProspectoId { get; set; }
+    int page = 1;
+    int groups = 1;
+    int size = 12;
+    bool load = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        return base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await Load();
+        }
     }
+    async Task Load()
+    {
+        load = true;
+        StateHasChanged();
+        try
+        {
 
+            var response = await client.GetAsync<Common.Result.GetActividadesResult>($"Actividades/GetActividades?page={page}&size={size}&prospectoId={ProspectoId}");
+            if (response!.Result == ResultType.Success)
+            {
+                actividades = response.Actividades;
 
+            }
+            else
+            {
+                await js.AlertAsync(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            await js.AlertAsync(ex.Message);
+        }
+        load = false;
+        StateHasChanged();
+    }
+    async Task BorrarActividad(long actividadId)
+    {
+        load = true;
+        StateHasChanged();
+
+        try
+        {
+            var confirm = await js.ConfirmAsync($"¿Desea eliminar la actividad?");
+            if (confirm)
+            {
+                var response = await client.GetAsync<Common.Result.DeleteProspectoResult>($"Actividades/DeleteActividad?actividadId={actividadId}");
+
+                if (response!.Result == ResultType.Success)
+                {
+                    await js.AlertAsync("Actividad eliminada correctamente");
+                    await Load();
+                }
+                else
+                {
+                    await js.AlertAsync(response.Message);
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await js.AlertAsync("Error");
+        }
+
+        load = false;
+        StateHasChanged();
+    }
+    void IrActividad(long actividadId)
+    {
+        navigationManager.NavigateTo($"/actividad/{actividadId}/{ProspectoId}");
+    }
 }
-
