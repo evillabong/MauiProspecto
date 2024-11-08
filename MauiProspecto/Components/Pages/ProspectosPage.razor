@@ -23,8 +23,8 @@ else
                     <small><b>Cel:</b> @prospecto.Celular <b>E-mail:</b> @prospecto.CorreoElectronico</small>
                 </div>
                 <div class="float-end" style="width:max-content">
-                    <a title="Borrar" class="text-danger" href="javascript:void(0)" @onclick="async () => await BorrarProspecto(prospecto.Id)"><i class="bi bi-trash-fill"></i> </a>
-                    <a title="Editar" class="text-warning" href="javascript:void(0)" @onclick="@(()=> IrAProspecto(prospecto.Id))"><i class="bi bi-pencil-square"></i> </a>
+                    <a title="Borrar" width="50px" height="50px" class="text-danger" href="javascript:void(0)" @onclick:stopPropagation="true" @onclick="async () => await BorrarProspecto(prospecto.Id)"><i class="bi bi-trash-fill"></i> </a>
+                    <a title="Editar" width="50px" height="50px" class="text-warning" href="javascript:void(0)" @onclick:stopPropagation="true" @onclick="@(()=> IrAProspecto(prospecto.Id))"><i class="bi bi-pencil-square"></i> </a>
                 </div>
             </MauiProspecto.Components.Views.CardItemView>
         }

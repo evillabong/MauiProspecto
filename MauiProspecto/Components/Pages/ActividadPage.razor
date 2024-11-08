@@ -55,7 +55,7 @@
 
     <hr />
     <button type="submit" class="btn btn-primary"> Grabar</button>
-    <button class="btn btn-secondary" @onclick="@(()=> navigation.NavigateTo("/actividades"))"> Cancelar</button>
+    <button type="button" class="btn btn-secondary" @onclick="@(()=> navigation.NavigateTo($"/actividades/{ProspectoId}"))"> Cancelar</button>
 </EditForm>
 
 @code {
@@ -71,11 +71,18 @@
         StateHasChanged();
         try
         {
-            var response = await service.PostAsync<CreateActividadParam, CreateActividadResult>("Actividades/CreateActividad", new CreateActividadParam
+            var param = new CreateActividadParam
                 {
                     Actividad = actividad,
-                    ProspectoId = ProspectoId
-                });
+                };
+
+            param.Actividad.ProspectoId = ProspectoId;
+
+            if (ActividadId > 0)
+            {
+                param.Actividad.Id = ActividadId;
+            }
+            var response = await service.PostAsync<CreateActividadParam, CreateActividadResult>("Actividades/CreateActividad", param);
 
             if (response!.Result == ResultType.Success)
             {

@@ -10,6 +10,5 @@ namespace Common.Param
     public class CreateActividadParam : BaseParam
     {
         public ActividadBase Actividad { get; set; } = null!;
-        public long ProspectoId { get; set; }
     }
 }

@@ -12,6 +12,7 @@
 }
 else
 {
+    <button class="btn btn-secondary btn-sm" @onclick="@(() => navigationManager.NavigateTo("/prospectos"))"> <i class="bi bi-arrow-left"></i> Ir Prospectos </button>
     <button class="btn btn-primary btn-sm" @onclick="() => IrActividad(0)"> <i class="bi bi-file-earmark-plus"></i> Nueva Actividad </button>
     <br />
     <br />
@@ -24,8 +25,8 @@ else
                     <p><small><b>Calificación:</b> @actividad.Calificacion</small></p>
                 </div>
                 <div class="float-end" style="width:max-content">
-                    <a title="Borrar" class="text-danger" href="javascript:void(0)" @onclick="async () => await BorrarActividad(actividad.Id)"><i class="bi bi-trash-fill"></i> </a>
-                    <a title="Editar" class="text-warning" href="javascript:void(0)" @onclick="@(()=> IrActividad(actividad.Id))"><i class="bi bi-pencil-square"></i> </a>
+                    <a title="Borrar" width="150px" height="50px" class="text-danger" href="javascript:void(0)" @onclick:stopPropagation="true" @onclick="async () => await BorrarActividad(actividad.Id)"><i class="bi bi-trash-fill"></i> </a>
+                    <a title="Editar" width="150px" height="50px" class="text-warning" href="javascript:void(0)" @onclick:stopPropagation="true" @onclick="@(()=> IrActividad(actividad.Id))"><i class="bi bi-pencil-square"></i> </a>
                 </div>
             </MauiProspecto.Components.Views.CardItemView>
         }
