@@ -34,7 +34,7 @@ namespace WebApi.Controllers
                 {
                     await dbcontext.Actividads.AddAsync(new Model.Entities.Sql.DataBase.Actividad
                     {
-                        ProspectoId = param.ProspectoId,
+                        ProspectoId = param.Actividad.ProspectoId,
                         Calificacion = param.Actividad.Calificacion,
                         Descripcion = param.Actividad.Descripcion,
                         Fecha = param.Actividad.Fecha,
@@ -77,6 +77,7 @@ namespace WebApi.Controllers
                     ret.Actividades.AddRange(prospectos.Select(prospecto =>
                         new ActividadBase
                         {
+                            Id = prospecto.Id,
                             ProspectoId = prospecto.ProspectoId,
                             Calificacion = prospecto.Calificacion,
                             Descripcion = prospecto.Descripcion,
@@ -100,6 +101,7 @@ namespace WebApi.Controllers
                 {
                     ret.Actividad = new ActividadBase
                     {
+                        Id = actividad.Id,
                         ProspectoId = actividad.ProspectoId,
                         Calificacion = actividad.Calificacion,
                         Descripcion = actividad.Descripcion,

@@ -97,13 +97,13 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("GetProspecto")]
-        public async Task<GetProspectoResult> GetProspecto([FromQuery] long id)
+        public async Task<GetProspectoResult> GetProspecto([FromQuery] long prospectoId)
         {
             return await _modelservice.Execute(async (dbcontext, configuration) =>
             {
                 var ret = new GetProspectoResult();
 
-                var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Id == id);
+                var prospecto = await dbcontext.Prospectos.FirstOrDefaultAsync(p => p.Id == prospectoId);
                 if (prospecto is not null)
                 {
                     ret.Prospecto = new ProspectoBase
